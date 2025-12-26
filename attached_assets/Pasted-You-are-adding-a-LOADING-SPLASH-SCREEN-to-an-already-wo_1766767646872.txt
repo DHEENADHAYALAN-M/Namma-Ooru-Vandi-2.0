@@ -1,0 +1,83 @@
+You are adding a LOADING / SPLASH SCREEN to an already working project
+called "Namma Ooru Vandi".
+
+IMPORTANT:
+- Do NOT change any existing logic.
+- Do NOT change routing, GPS, ESP, demo mode, or map behavior.
+- Do NOT refactor or move existing code.
+- This must be a VISUAL-ONLY addition.
+
+---------------------------------
+SPLASH SCREEN REQUIREMENTS
+---------------------------------
+
+1. DISPLAY BEHAVIOR
+- Show the splash screen immediately when the app loads.
+- Splash screen should appear BEFORE the main UI.
+- Splash screen should disappear automatically after:
+  - initial app load OR
+  - a short delay (e.g., 1.5–2 seconds).
+
+2. VISUAL DESIGN (MATCH PROVIDED IMAGE)
+- Full-screen solid background (deep blue).
+- Centered circular logo.
+- Logo should contain:
+  - A bus illustration
+  - A map pin / road concept
+- App name text below logo:
+  - "Namma Ooru Vandi"
+- Clean, modern, mobile-app style.
+
+3. ANIMATION (SUBTLE)
+- Add a gentle animation:
+  - fade-in
+  - or slight scale-in
+- Do NOT add heavy animations.
+
+---------------------------------
+INTEGRATION RULES (VERY IMPORTANT)
+---------------------------------
+
+4. NON-DESTRUCTIVE INTEGRATION
+- Do NOT block app logic.
+- Do NOT delay API calls.
+- Do NOT interfere with routing or state.
+- Splash screen must only control VISIBILITY,
+  not app initialization.
+
+5. SAFE REMOVAL
+- Once app is ready:
+  - smoothly fade out the splash screen
+  - reveal the existing UI underneath.
+- The main app should already be mounted and ready.
+
+---------------------------------
+TECHNICAL CONSTRAINTS
+---------------------------------
+
+- Implement splash screen as:
+  - a top-level UI overlay OR
+  - a lightweight loading component.
+- Use existing styling system (no new libraries).
+- Keep code minimal and readable.
+
+---------------------------------
+WHAT NOT TO DO
+---------------------------------
+
+- Do NOT create a new page route.
+- Do NOT wrap the entire app in complex loaders.
+- Do NOT modify existing components.
+- Do NOT change performance-critical logic.
+
+---------------------------------
+SUCCESS CRITERIA
+---------------------------------
+
+After implementation:
+- App shows a professional splash screen on load.
+- Splash screen matches the provided design.
+- Splash screen disappears smoothly.
+- App behavior remains IDENTICAL afterward.
+
+This is a purely visual enhancement.
