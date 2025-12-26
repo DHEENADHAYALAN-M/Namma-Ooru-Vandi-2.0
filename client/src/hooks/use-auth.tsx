@@ -37,25 +37,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
       });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Login failed");
+
+      // 🔒 SAFE PARSING FOR VERCEL / REPLIT / LOCALHOST
+      const text = await res.text();
+      let data: any;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned an invalid response");
       }
-      return await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Login failed");
+      }
+
+      return data as User;
     },
+
     onSuccess: (data: User) => {
       queryClient.setQueryData([api.auth.me.path], data);
+
       toast({
         title: "Welcome back!",
         description: `Logged in as ${data.name}`,
       });
-      
+
       // Redirect based on role
       if (data.role === "driver") setLocation("/driver");
       else if (data.role === "admin") setLocation("/admin");
       else setLocation("/dashboard");
     },
+
     onError: (error: Error) => {
       toast({
         title: "Login Failed",
@@ -67,11 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch(api.auth.logout.path, { method: api.auth.logout.method });
+      await fetch(api.auth.logout.path, {
+        method: api.auth.logout.method,
+      });
     },
     onSuccess: () => {
       queryClient.setQueryData([api.auth.me.path], null);
       setLocation("/");
+
       toast({
         title: "Logged out",
         description: "See you next time!",
