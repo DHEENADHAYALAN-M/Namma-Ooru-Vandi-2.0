@@ -12,8 +12,7 @@ interface BusMarkerProps {
 export function BusMarker({ bus, onClick }: BusMarkerProps) {
   const isCrowded = bus.crowdLevel === CROWD_LEVEL.HIGH;
   const isMedium = bus.crowdLevel === CROWD_LEVEL.MEDIUM;
-  
-  // Determine color based on crowd/status
+  const isRunning = bus.status === BUS_STATUS.RUNNING || bus.status.includes('Active');
   let colorClass = "text-green-600 bg-green-100 border-green-600";
   if (isCrowded) colorClass = "text-red-600 bg-red-100 border-red-600";
   else if (isMedium) colorClass = "text-yellow-600 bg-yellow-100 border-yellow-600";
@@ -24,11 +23,13 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
 
   // Create custom HTML icon
   const iconHtml = renderToString(
-    <div className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 shadow-lg transition-transform hover:scale-110 ${colorClass}`}>
-      {bus.status === BUS_STATUS.RUNNING && (
+    <div className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 shadow-lg transition-all duration-1000 hover:scale-110 ${colorClass}`}>
+      {isRunning && (
         <div className={`pulse-ring ${isCrowded ? 'text-red-500' : 'text-green-500'}`}></div>
       )}
-      <BusIcon size={20} strokeWidth={2.5} />
+      <div style={ { transform: `rotate(${isRunning ? '45deg' : '0deg'})`, transition: 'transform 1s ease-in-out' } }>
+        <BusIcon size={20} strokeWidth={2.5} />
+      </div>
       {bus.isLive && (
         <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white font-bold ring-2 ring-white">
           <Wifi size={10} />

@@ -30,11 +30,11 @@ A real-time public transport tracking application for Chennai. The app allows pa
 - **Mapping**: Leaflet, React-Leaflet
 
 ## Key Features
-- **Passenger View**: Track live buses on an interactive map
-- **Driver View**: Update trip status and passenger count
-- **Admin View**: Manage fleet and monitor operations
-- **Real-time Updates**: Bus positions update every 2 seconds via simulation
-- **ESP Integration**: API endpoint for real hardware (ESP) data updates
+- **Demo GPS Mode**: Default mode using fixed Trichy-based coordinates for simulation
+- **ESP GPS Priority**: Location source priority (ESP > Demo > Simulation)
+- **Trichy Routes**: Fixed routes (Central → Thillai Nagar, Central → Srirangam, Chatram → Woraiyur)
+- **Driver Controls**: Start/Stop trip and passenger count slider with instant sync
+- **Passenger UI**: Auto-focus on selected bus and smooth interpolation between updates
 
 ## Running the Application
 - **Development**: `npm run dev` - Starts the Express server with Vite middleware on port 5000

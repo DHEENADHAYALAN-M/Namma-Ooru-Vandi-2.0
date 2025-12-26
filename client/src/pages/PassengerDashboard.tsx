@@ -151,7 +151,9 @@ export default function PassengerDashboard() {
                   <Button 
                     className="flex-1 bg-primary text-white hover:bg-primary/90 font-bold"
                     onClick={() => {
-                      // Trip starts immediately by focusing
+                      // Trigger re-focus
+                      setSelectedBusId(null);
+                      setTimeout(() => setSelectedBusId(selectedBus.id), 50);
                     }}
                   >
                     <MapPin className="mr-2 h-4 w-4" />
