@@ -65,6 +65,8 @@ export const RoleSelectionSchema = z.object({
   role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),
 });
 
+export const LoginSchema = RoleSelectionSchema;
+
 export const UpdateBusStatusSchema = z.object({
   status: z.enum([BUS_STATUS.RUNNING, BUS_STATUS.STOPPED]),
 });
