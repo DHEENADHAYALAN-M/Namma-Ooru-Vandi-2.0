@@ -62,6 +62,19 @@ export const RouteSchema = z.object({
 
 export type Route = z.infer<typeof RouteSchema>;
 
+// Extended route schema with stops' positions
+export const RouteWithStopsSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  path: z.array(z.tuple([z.number(), z.number()])),
+  stops: z.array(z.object({
+    name: z.string(),
+    position: z.tuple([z.number(), z.number()]),
+  })),
+});
+
+export type RouteWithStops = z.infer<typeof RouteWithStopsSchema>;
+
 // Input Schemas
 export const RoleSelectionSchema = z.object({
   role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),

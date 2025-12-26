@@ -1,10 +1,11 @@
-import { Bus, User, Route, BusSchema, UserSchema, ROLE, BUS_STATUS, CROWD_LEVEL } from "@shared/schema";
+import { Bus, User, Route, RouteWithStops, BusSchema, UserSchema, ROLE, BUS_STATUS, CROWD_LEVEL } from "@shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getAllBuses(): Promise<Bus[]>;
   getBus(id: number): Promise<Bus | undefined>;
+  getRoute(id: number): Promise<RouteWithStops | undefined>;
   updateBusStatus(id: number, status: string): Promise<Bus>;
   updateBusEsp(id: number, lat?: number, lng?: number, count?: number): Promise<void>;
   simulateMovement(): void; // Trigger simulation step
@@ -198,6 +199,26 @@ export class MemStorage implements IStorage {
 
   async getBus(id: number): Promise<Bus | undefined> {
     return this.buses.get(id);
+  }
+
+  async getRoute(id: number): Promise<RouteWithStops | undefined> {
+    const route = this.routes.find(r => r.id === id);
+    if (!route) return undefined;
+    
+    // Convert stops array to objects with positions
+    const stopsWithPositions = route.stops.map((stopName, index) => {
+      // Map stop name to approximate position on the route
+      const stopIndex = Math.floor((index / route.stops.length) * route.path.length);
+      const position = route.path[Math.min(stopIndex, route.path.length - 1)];
+      return { name: stopName, position };
+    });
+
+    return {
+      id: route.id,
+      name: route.name,
+      path: route.path,
+      stops: stopsWithPositions,
+    };
   }
 
   async updateBusStatus(id: number, status: string): Promise<Bus> {

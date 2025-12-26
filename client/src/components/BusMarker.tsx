@@ -15,11 +15,25 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
   const [displayPos, setDisplayPos] = useState<[number, number]>([bus.lat, bus.lng]);
   const [prevPos, setPrevPos] = useState<[number, number]>([bus.lat, bus.lng]);
   const [startTime, setStartTime] = useState<number>(0);
+  const [bearing, setBearing] = useState<number>(0); // Direction in degrees
 
   // Animate to new position when bus coordinates change
   useEffect(() => {
     // Only animate if position actually changed
     if (prevPos[0] !== bus.lat || prevPos[1] !== bus.lng) {
+      // Calculate bearing from previous to new position
+      const lat1 = displayPos[0];
+      const lon1 = displayPos[1];
+      const lat2 = bus.lat;
+      const lon2 = bus.lng;
+      
+      const dLon = lon2 - lon1;
+      const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+      const newBearing = Math.atan2(y, x) * 180 / Math.PI;
+      setBearing((newBearing + 360) % 360);
+      
       setPrevPos(displayPos); // Previous position is where we currently are
       setStartTime(Date.now());
     }
@@ -76,7 +90,7 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
       {isRunning && (
         <div className={`pulse-ring ${isCrowded ? 'text-red-500' : 'text-green-500'}`}></div>
       )}
-      <div style={ { transform: `rotate(${isRunning ? '45deg' : '0deg'})`, transition: 'transform 1s ease-in-out' } }>
+      <div style={ { transform: `rotate(${isRunning ? bearing + 45 : 45}deg)`, transition: 'transform 0.3s ease-out' } }>
         <BusIcon size={20} strokeWidth={2.5} />
       </div>
       {bus.isLive && (

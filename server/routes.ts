@@ -105,5 +105,12 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.get(api.routes.get.path, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const route = await storage.getRoute(id);
+    if (!route) return res.status(404).json({ message: "Route not found" });
+    res.json(route);
+  });
+
   return httpServer;
 }

@@ -5,16 +5,24 @@ import { useBuses } from "@/hooks/use-buses";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, Navigation, Users, MapPin } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMap } from "react-leaflet";
+import { Polyline, CircleMarker, Popup } from "react-leaflet";
+import { api, buildUrl } from "@shared/routes";
+import { RouteWithStops } from "@shared/schema";
 
-function MapController({ center }: { center: [number, number] | null }) {
+function MapController({ center, isTracking }: { center: [number, number] | null; isTracking: boolean }) {
   const map = useMap();
-  if (center) {
-    map.flyTo(center, 15, { animate: true, duration: 1.5 });
-  }
+  
+  useEffect(() => {
+    if (center && isTracking) {
+      // Zoom in and center on bus while tracking
+      map.setView(center, 16, { animate: true, duration: 0.5 });
+    }
+  }, [center, isTracking, map]);
+  
   return null;
 }
 
@@ -22,6 +30,9 @@ export default function PassengerDashboard() {
   const { data: buses, isLoading } = useBuses();
   const [search, setSearch] = useState("");
   const [selectedBusId, setSelectedBusId] = useState<number | null>(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [route, setRoute] = useState<RouteWithStops | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   const filteredBuses = useMemo(() => buses?.filter(bus => 
     bus.busNumber.toLowerCase().includes(search.toLowerCase()) || 
@@ -30,13 +41,56 @@ export default function PassengerDashboard() {
 
   const selectedBus = useMemo(() => buses?.find(b => b.id === selectedBusId), [buses, selectedBusId]);
 
+  // Fetch route when bus is selected
+  useEffect(() => {
+    if (selectedBus && isTracking) {
+      setRouteLoading(true);
+      fetch(buildUrl(api.routes.get.path, { id: selectedBus.routeId }))
+        .then(res => res.json())
+        .then(data => {
+          setRoute(data);
+          setRouteLoading(false);
+        })
+        .catch(() => setRouteLoading(false));
+    }
+  }, [selectedBus?.id, isTracking, selectedBus?.routeId]);
+
   return (
     <Layout>
       <div className="relative h-full w-full">
         {/* Map Layer */}
         <div className="absolute inset-0 z-0">
           <MapWrapper>
-            {selectedBus && <MapController center={[selectedBus.lat, selectedBus.lng]} />}
+            {selectedBus && <MapController center={[selectedBus.lat, selectedBus.lng]} isTracking={isTracking} />}
+            
+            {/* Route Polyline and Stops */}
+            {isTracking && route && (
+              <>
+                <Polyline 
+                  positions={route.path as any} 
+                  color="#3b82f6" 
+                  weight={4}
+                  opacity={0.8}
+                  className="route-line"
+                />
+                {/* Bus Stops */}
+                {route.stops.map((stop, idx) => (
+                  <CircleMarker
+                    key={idx}
+                    center={stop.position as any}
+                    radius={6}
+                    fillColor="#10b981"
+                    color="#059669"
+                    weight={2}
+                    opacity={0.8}
+                    fillOpacity={0.7}
+                  >
+                    <Popup>{stop.name}</Popup>
+                  </CircleMarker>
+                ))}
+              </>
+            )}
+            
             {buses?.map((bus) => (
               <BusMarker 
                 key={bus.id} 
@@ -149,19 +203,26 @@ export default function PassengerDashboard() {
 
                 <div className="flex gap-2">
                   <Button 
-                    className="flex-1 bg-primary text-white hover:bg-primary/90 font-bold"
+                    className={`flex-1 font-bold ${isTracking ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-primary text-white hover:bg-primary/90'}`}
                     onClick={() => {
-                      // Trigger re-focus
-                      setSelectedBusId(null);
-                      setTimeout(() => setSelectedBusId(selectedBus.id), 50);
+                      setIsTracking(!isTracking);
+                      if (!isTracking) {
+                        // Trigger re-focus
+                        setSelectedBusId(null);
+                        setTimeout(() => setSelectedBusId(selectedBus.id), 50);
+                      }
                     }}
                   >
                     <MapPin className="mr-2 h-4 w-4" />
-                    Track Live
+                    {isTracking ? 'Stop Tracking' : 'Track Live'}
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => setSelectedBusId(null)}
+                    onClick={() => {
+                      setSelectedBusId(null);
+                      setIsTracking(false);
+                      setRoute(null);
+                    }}
                   >
                     Close
                   </Button>

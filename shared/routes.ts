@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserSchema, BusSchema, RoleSelectionSchema, UpdateBusStatusSchema, EspDataSchema } from './schema';
+import { UserSchema, BusSchema, RoleSelectionSchema, UpdateBusStatusSchema, EspDataSchema, RouteWithStopsSchema } from './schema';
 
 export const api = {
   auth: {
@@ -59,6 +59,16 @@ export const api = {
       input: EspDataSchema,
       responses: {
         200: z.object({ success: z.boolean() }),
+      },
+    },
+  },
+  routes: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/routes/:id',
+      responses: {
+        200: RouteWithStopsSchema,
+        404: z.object({ message: z.string() }),
       },
     },
   },
