@@ -1,18 +1,79 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, real, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// NOTE: We are NOT using a database, but we use these schemas for type sharing and validation.
+
+export const ROLE = {
+  PASSENGER: 'passenger',
+  DRIVER: 'driver',
+  ADMIN: 'admin',
+} as const;
+
+export const BUS_STATUS = {
+  RUNNING: 'Running',
+  STOPPED: 'Stopped',
+  SIGNAL_LOST: 'Signal Lost',
+} as const;
+
+export const CROWD_LEVEL = {
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+} as const;
+
+// Define User Schema (In-memory)
+export const UserSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  password: z.string(),
+  role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),
+  name: z.string(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export type User = z.infer<typeof UserSchema>;
+
+// Define Bus Schema (In-memory)
+export const BusSchema = z.object({
+  id: z.number(),
+  busNumber: z.string(),
+  routeId: z.number(),
+  routeName: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  passengerCount: z.number(),
+  crowdLevel: z.enum([CROWD_LEVEL.LOW, CROWD_LEVEL.MEDIUM, CROWD_LEVEL.HIGH]),
+  status: z.enum([BUS_STATUS.RUNNING, BUS_STATUS.STOPPED, BUS_STATUS.SIGNAL_LOST]),
+  isLive: z.boolean(), // True for the ESP-connected bus
+  nextStop: z.string(),
+  eta: z.string(), // Estimated time to next stop
+  lastUpdated: z.string(), // ISO string
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type Bus = z.infer<typeof BusSchema>;
+
+// Route Path Schema for Simulation
+export const RouteSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  path: z.array(z.tuple([z.number(), z.number()])), // Array of [lat, lng]
+  stops: z.array(z.string()),
+});
+
+export type Route = z.infer<typeof RouteSchema>;
+
+// Input Schemas
+export const LoginSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
+export const UpdateBusStatusSchema = z.object({
+  status: z.enum([BUS_STATUS.RUNNING, BUS_STATUS.STOPPED]),
+});
+
+export const EspDataSchema = z.object({
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  passengerCount: z.number().optional(),
+});
