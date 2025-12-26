@@ -1,0 +1,85 @@
+You are applying a minimal, non-invasive fix to an already working project
+called "Namma Ooru Vandi".
+
+The project MUST behave exactly the same after this task.
+This is a compatibility and startup fix ONLY.
+
+ABSOLUTE CONSTRAINTS (DO NOT VIOLATE):
+- Do NOT modify application logic.
+- Do NOT change GPS, ESP, demo mode, or real-time behavior.
+- Do NOT refactor or touch routes, services, or frontend UI.
+- Do NOT add, remove, or redesign features.
+- Do NOT change folder structure.
+
+---------------------------------
+PROBLEM 1: NODE_ENV ERROR ON WINDOWS
+---------------------------------
+
+Issue:
+- The development script sets NODE_ENV using Unix-style syntax.
+- This fails on Windows terminals.
+
+Required Fix:
+- Make the development script cross-platform.
+- Ensure `npm run dev` works on Windows, Linux, and cloud environments.
+- NODE_ENV must still be correctly set for development and production.
+
+---------------------------------
+PROBLEM 2: PORT / HOST BINDING ERROR
+---------------------------------
+
+Issue:
+- The server attempts to bind to `0.0.0.0`, IPv6 (`::`), or uses advanced listen options.
+- This causes ENOTSUP errors on Windows.
+
+Required Fix:
+- Remove all explicit host bindings.
+- Remove any usage of `0.0.0.0`, `::`, or `reusePort`.
+- Use a simple, universally supported server start method.
+
+---------------------------------
+SERVER STARTUP RULES
+---------------------------------
+
+Development:
+- The server must start using `npm run dev`.
+- It must bind safely to localhost without specifying a host.
+
+Production:
+- The server must not hardcode ports.
+- The server must be exportable for platform-managed runtimes (e.g., serverless).
+
+---------------------------------
+ALLOWED CHANGES ONLY
+---------------------------------
+
+You may modify:
+- `package.json` scripts related to startup.
+- Server start / listen code.
+- Environment variable setup.
+
+---------------------------------
+STRICTLY DISALLOWED
+---------------------------------
+
+You may NOT modify:
+- Any business logic.
+- Any GPS, ESP, or demo-mode logic.
+- Any API route handlers.
+- Any frontend rendering or UI logic.
+- Any data flow or real-time behavior.
+
+---------------------------------
+SUCCESS CRITERIA
+---------------------------------
+
+After applying the fix:
+- `npm run dev` must work on Windows.
+- No `NODE_ENV` errors must occur.
+- No `0.0.0.0` or IPv6 binding must be present.
+- The application must behave IDENTICALLY to before.
+
+Do not add features.
+Do not optimize.
+Do not refactor.
+Only apply the minimal changes required for startup compatibility.
