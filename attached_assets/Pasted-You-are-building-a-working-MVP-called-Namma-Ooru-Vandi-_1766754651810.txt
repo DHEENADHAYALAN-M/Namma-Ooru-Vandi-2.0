@@ -1,0 +1,138 @@
+You are building a working MVP called "Namma Ooru Vandi".
+
+The goal is to create a REALISTIC public transport tracking application that looks and behaves like an actual city bus tracking app.
+
+This is a DEMO-READY MVP.
+Keep the system simple, stable, and runnable.
+Use dummy workflows everywhere, but allow real ESP data for live tracking.
+
+DO NOT use any database.
+DO NOT mention programming languages or frameworks in UI or comments.
+Use only in-memory or local data.
+
+---------------------------------
+SYSTEM ROLES
+---------------------------------
+1. Passenger
+2. Driver
+3. Admin
+
+Each role must have a separate dashboard after login.
+
+---------------------------------
+LOGIN (DUMMY AUTH)
+---------------------------------
+- Simple login using in-memory credentials.
+- Passenger, Driver, and Admin log in separately.
+- After login, redirect to the correct dashboard.
+- No external authentication services.
+
+---------------------------------
+BUS INITIALIZATION
+---------------------------------
+- Initialize 5 to 10 buses in memory.
+- Each bus must contain:
+  - Bus ID
+  - Route name
+  - Current latitude & longitude
+  - Passenger count
+  - Crowd level (Low / Medium / High)
+  - Status (Running / Stopped)
+- Mark one bus as LIVE BUS.
+- Other buses must be SIMULATED BUSES.
+
+---------------------------------
+REAL-WORLD MAP (MANDATORY)
+---------------------------------
+- Display a real-world city map.
+- Buses must move on actual roads, not random coordinates.
+- Each bus must appear as a moving marker.
+- Clicking a bus marker must show:
+  - Bus ID
+  - Route name
+  - Crowd level
+  - Arrival estimate
+- Map must auto-update without refresh.
+
+---------------------------------
+ESP INTEGRATION (LIVE BUS)
+---------------------------------
+- LIVE BUS receives real-time GPS and passenger count from an ESP device.
+- Incoming data immediately updates the bus marker on the map.
+- If ESP is not connected, fallback to simulated movement.
+
+---------------------------------
+SIMULATED BUS MOVEMENT
+---------------------------------
+- Simulated buses must:
+  - Follow predefined real-world routes.
+  - Move smoothly along roads.
+  - Update passenger count periodically.
+  - Change crowd level dynamically.
+- Simulation must run continuously.
+
+---------------------------------
+CROWD COUNTING
+---------------------------------
+- Crowd level must be calculated from passenger count.
+- Display crowd level using clear visual indicators.
+- Updates must reflect instantly on map and dashboards.
+
+---------------------------------
+PASSENGER DASHBOARD
+---------------------------------
+- Show real-time bus locations on the map.
+- Show crowd levels before boarding.
+- Show estimated arrival time.
+- UI should feel like a real transit tracking app.
+
+---------------------------------
+DRIVER DASHBOARD
+---------------------------------
+- Driver is assigned one bus.
+- Driver can:
+  - View live passenger count
+  - See crowd level
+  - Start / Stop bus (dummy action)
+- Driver actions affect live bus status.
+
+---------------------------------
+ADMIN DASHBOARD
+---------------------------------
+- Admin sees all buses on one real-time map.
+- Identify overcrowded buses visually.
+- Monitor route-level congestion.
+
+---------------------------------
+REAL-TIME BEHAVIOR
+---------------------------------
+- All updates must be real time.
+- No manual refresh.
+- Any data change must reflect across all dashboards instantly.
+
+---------------------------------
+FAIL-SAFE LOGIC
+---------------------------------
+- If live ESP data stops:
+  - Show status as "Signal Lost"
+  - Continue simulation
+- App must never crash.
+
+---------------------------------
+DEMO REQUIREMENTS
+---------------------------------
+- App must run with a single command.
+- Works fully without ESP.
+- Enhances experience when ESP is connected.
+- Judges must clearly see:
+  - Moving buses on real map
+  - Live crowd changes
+  - Multiple buses running together
+
+---------------------------------
+OUTPUT EXPECTATION
+---------------------------------
+- Clean, readable code
+- Clear separation of live vs simulated logic
+- Inline comments explaining workflow
+- Ready for live demonstration
