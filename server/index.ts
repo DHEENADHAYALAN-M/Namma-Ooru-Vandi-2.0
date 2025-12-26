@@ -80,23 +80,22 @@ const startServer = (async () => {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
+
+  // Vercel compatibility: Only call listen if not in production
+  if (process.env.NODE_ENV !== "production") {
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(
+      {
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      },
+      () => {
+        log(`serving on port ${port}`);
+      },
+    );
+  }
 })();
 
 export { startServer };
-
-// Vercel compatibility: Export the app instead of calling listen if not in development
-const port = parseInt(process.env.PORT || "5000", 10);
-if (process.env.NODE_ENV !== "production") {
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
-}
-
 export default app;
