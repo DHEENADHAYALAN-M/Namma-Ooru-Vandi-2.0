@@ -14,6 +14,8 @@ export const BUS_STATUS = {
   RUNNING: 'Running',
   STOPPED: 'Stopped',
   SIGNAL_LOST: 'Signal Lost',
+  DEMO_GPS: 'Demo GPS Active',
+  ESP_GPS: 'ESP GPS Active',
 } as const;
 
 export const CROWD_LEVEL = {

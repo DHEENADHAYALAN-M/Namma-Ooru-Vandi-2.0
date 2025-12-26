@@ -27,34 +27,44 @@ export class MemStorage implements IStorage {
   }
 
   private initializeRoutes(): Route[] {
-    // Chennai-like routes
+    // Trichy-based routes for Demo GPS Mode
     return [
       {
         id: 1,
-        name: "Route 1: Central to T. Nagar",
-        stops: ["Central Station", "Mount Road", "T. Nagar"],
+        name: "Route 1: Central Bus Stand → Thillai Nagar",
+        stops: ["Central Bus Stand", "Main Guard Gate", "Thillai Nagar"],
         path: [
-          [13.0827, 80.2707], // Central
-          [13.0724, 80.2690],
-          [13.0604, 80.2644],
-          [13.0500, 80.2500],
-          [13.0418, 80.2341], // T. Nagar
-          [13.0500, 80.2500], // Loop back
-          [13.0604, 80.2644],
-          [13.0724, 80.2690],
+          [10.8160, 78.6820], // Central Bus Stand
+          [10.8220, 78.6880],
+          [10.8280, 78.6920],
+          [10.8320, 78.6850], // Thillai Nagar
+          [10.8280, 78.6920], // Loop back
+          [10.8220, 78.6880],
         ]
       },
       {
         id: 2,
-        name: "Route 2: Guindy to Adyar",
-        stops: ["Guindy", "Little Mount", "Adyar"],
+        name: "Route 2: Central Bus Stand → Srirangam",
+        stops: ["Central Bus Stand", "Chatram", "Srirangam"],
         path: [
-          [13.0067, 80.2206], // Guindy
-          [13.0120, 80.2290],
-          [13.0060, 80.2450],
-          [13.0012, 80.2565], // Adyar
-          [13.0060, 80.2450], // Loop back
-          [13.0120, 80.2290],
+          [10.8160, 78.6820], // Central
+          [10.8250, 78.6900],
+          [10.8420, 78.7020], // Chatram
+          [10.8580, 78.6950],
+          [10.8650, 78.6920], // Srirangam
+          [10.8580, 78.6950], // Loop back
+          [10.8420, 78.7020],
+        ]
+      },
+      {
+        id: 3,
+        name: "Route 3: Chatram Bus Stand → Woraiyur",
+        stops: ["Chatram Bus Stand", "Cauvery Bridge", "Woraiyur"],
+        path: [
+          [10.8420, 78.7020], // Chatram
+          [10.8450, 78.7080],
+          [10.8380, 78.6850], // Woraiyur
+          [10.8420, 78.7020], // Loop back
         ]
       }
     ];
@@ -69,11 +79,12 @@ export class MemStorage implements IStorage {
   private initializeBuses() {
     const route1 = this.routes[0];
     const route2 = this.routes[1];
+    const route3 = this.routes[2];
 
     // LIVE Bus (Bus 1)
     this.buses.set(1, {
       id: 1,
-      busNumber: "TN-01-AB-1234",
+      busNumber: "TN-45-AB-1234",
       routeId: 1,
       routeName: route1.name,
       lat: route1.path[0][0],
@@ -89,11 +100,11 @@ export class MemStorage implements IStorage {
 
     // Simulated Buses
     for (let i = 2; i <= 5; i++) {
-      const route = i % 2 === 0 ? route2 : route1;
+      const route = i === 2 ? route2 : i === 3 ? route3 : route1;
       const startIdx = Math.floor(Math.random() * route.path.length);
       this.buses.set(i, {
         id: i,
-        busNumber: `TN-0${i}-XY-${1000 + i}`,
+        busNumber: `TN-45-XY-${1000 + i}`,
         routeId: route.id,
         routeName: route.name,
         lat: route.path[startIdx][0],
