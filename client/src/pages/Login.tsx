@@ -1,29 +1,16 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { LoginSchema } from "@shared/schema";
 import { Bus, Shield, User } from "lucide-react";
 import Layout from "@/components/Layout";
+import { ROLE } from "@shared/schema";
 
 export default function Login() {
   const { login, isLoading } = useAuth();
   
-  const form = useForm<z.infer<typeof LoginSchema>>({
-    resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof LoginSchema>) {
-    login(values);
-  }
+  const handleRoleSelection = (role: typeof ROLE[keyof typeof ROLE]) => {
+    login({ role });
+  };
 
   return (
     <Layout>
@@ -33,77 +20,70 @@ export default function Login() {
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Chennai_Central_Railway_Station.jpg/1200px-Chennai_Central_Railway_Station.jpg')] bg-cover bg-center filter grayscale contrast-150" />
         </div>
 
-        <div className="w-full max-w-md z-10 grid gap-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold font-display tracking-tight text-foreground">Welcome Aboard</h1>
-            <p className="text-muted-foreground">Log in to access real-time transit data</p>
+        <div className="w-full max-w-4xl z-10 grid gap-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold font-display tracking-tight text-foreground">Namma Ooru Vandi</h1>
+            <p className="text-xl text-muted-foreground max-w-lg mx-auto">Real-time public transport tracking for a smarter Chennai</p>
           </div>
 
-          <Card className="border-border/50 shadow-xl shadow-primary/5 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
-              <CardDescription className="text-center">
-                Enter your credentials to continue
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter username..." {...field} className="h-11" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} className="h-11" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button 
-                    type="submit" 
-                    className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Authenticating..." : "Sign In"}
-                  </Button>
-                </form>
-              </Form>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card 
+              className="border-border/50 shadow-lg hover:shadow-primary/10 transition-all cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm"
+              onClick={() => handleRoleSelection(ROLE.PASSENGER)}
+              data-testid="card-passenger-mode"
+            >
+              <CardHeader className="text-center pb-2">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                  <User className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl font-bold">Passenger</CardTitle>
+                <CardDescription>Track live buses and plan your journey</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Button variant="outline" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors" disabled={isLoading} data-testid="button-passenger-mode">
+                  Explore Map
+                </Button>
+              </CardContent>
+            </Card>
 
-              <div className="mt-6 grid grid-cols-3 gap-3">
-                <div className="text-center p-2 rounded-lg bg-gray-50 border border-gray-100">
-                  <User className="w-5 h-5 mx-auto mb-1 text-primary" />
-                  <div className="text-[10px] text-muted-foreground font-medium">Passenger</div>
-                  <div className="text-[10px] text-gray-400">user / pass</div>
+            <Card 
+              className="border-border/50 shadow-lg hover:shadow-orange-500/10 transition-all cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm"
+              onClick={() => handleRoleSelection(ROLE.DRIVER)}
+              data-testid="card-driver-mode"
+            >
+              <CardHeader className="text-center pb-2">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
+                  <Bus className="w-8 h-8 text-orange-600" />
                 </div>
-                <div className="text-center p-2 rounded-lg bg-gray-50 border border-gray-100">
-                  <Bus className="w-5 h-5 mx-auto mb-1 text-orange-500" />
-                  <div className="text-[10px] text-muted-foreground font-medium">Driver</div>
-                  <div className="text-[10px] text-gray-400">driver / pass</div>
+                <CardTitle className="text-2xl font-bold">Driver</CardTitle>
+                <CardDescription>Update trip status and passenger count</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Button variant="outline" className="w-full mt-4 group-hover:bg-orange-600 group-hover:text-white transition-colors" disabled={isLoading} data-testid="button-driver-mode">
+                  Access Console
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="border-border/50 shadow-lg hover:shadow-red-500/10 transition-all cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm"
+              onClick={() => handleRoleSelection(ROLE.ADMIN)}
+              data-testid="card-admin-mode"
+            >
+              <CardHeader className="text-center pb-2">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-red-200 transition-colors">
+                  <Shield className="w-8 h-8 text-red-600" />
                 </div>
-                <div className="text-center p-2 rounded-lg bg-gray-50 border border-gray-100">
-                  <Shield className="w-5 h-5 mx-auto mb-1 text-red-500" />
-                  <div className="text-[10px] text-muted-foreground font-medium">Admin</div>
-                  <div className="text-[10px] text-gray-400">admin / pass</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-2xl font-bold">Admin</CardTitle>
+                <CardDescription>Manage fleet and monitor operations</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Button variant="outline" className="w-full mt-4 group-hover:bg-red-600 group-hover:text-white transition-colors" disabled={isLoading} data-testid="button-admin-mode">
+                  System Overview
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </Layout>

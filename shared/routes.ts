@@ -1,15 +1,14 @@
 import { z } from 'zod';
-import { UserSchema, BusSchema, LoginSchema, UpdateBusStatusSchema, EspDataSchema } from './schema';
+import { UserSchema, BusSchema, RoleSelectionSchema, UpdateBusStatusSchema, EspDataSchema } from './schema';
 
 export const api = {
   auth: {
     login: {
       method: 'POST' as const,
       path: '/api/login',
-      input: LoginSchema,
+      input: RoleSelectionSchema,
       responses: {
         200: UserSchema,
-        401: z.object({ message: z.string() }),
       },
     },
     logout: {

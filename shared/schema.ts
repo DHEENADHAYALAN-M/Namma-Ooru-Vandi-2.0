@@ -22,11 +22,9 @@ export const CROWD_LEVEL = {
   HIGH: 'High',
 } as const;
 
-// Define User Schema (In-memory)
+// Define User Schema (In-memory) - Simplified for direct role selection
 export const UserSchema = z.object({
   id: z.number(),
-  username: z.string(),
-  password: z.string(),
   role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),
   name: z.string(),
 });
@@ -63,9 +61,8 @@ export const RouteSchema = z.object({
 export type Route = z.infer<typeof RouteSchema>;
 
 // Input Schemas
-export const LoginSchema = z.object({
-  username: z.string(),
-  password: z.string(),
+export const RoleSelectionSchema = z.object({
+  role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),
 });
 
 export const UpdateBusStatusSchema = z.object({

@@ -25,17 +25,26 @@ export async function registerRoutes(
   // Auth Routes
   app.post(api.auth.login.path, async (req, res) => {
     try {
-      const { username, password } = api.auth.login.input.parse(req.body);
-      const user = await storage.getUserByUsername(username);
-
-      if (!user || user.password !== password) {
-        return res.status(401).json({ message: "Invalid credentials" });
+      const { role } = api.auth.login.input.parse(req.body);
+      
+      // Create or get a default user for the role
+      const username = `${role}_user`;
+      let user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        user = await storage.createUser({
+          username,
+          password: 'password', // dummy password
+          role,
+          name: `${role.charAt(0).toUpperCase() + role.slice(1)} Mode`
+        });
       }
 
       // @ts-ignore
       req.session.userId = user.id;
       res.json(user);
     } catch (e) {
+      console.error('Login error:', e);
       res.status(400).json({ message: "Invalid input" });
     }
   });
