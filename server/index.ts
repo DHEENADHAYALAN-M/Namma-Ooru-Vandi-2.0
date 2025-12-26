@@ -59,7 +59,8 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Export the IIFE promise for testing or just export the app
+const startServer = (async () => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -79,12 +80,13 @@ app.use((req, res, next) => {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
+})();
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
+export { startServer };
+
+// Vercel compatibility: Export the app instead of calling listen if not in development
+const port = parseInt(process.env.PORT || "5000", 10);
+if (process.env.NODE_ENV !== "production") {
   httpServer.listen(
     {
       port,
@@ -95,4 +97,6 @@ app.use((req, res, next) => {
       log(`serving on port ${port}`);
     },
   );
-})();
+}
+
+export default app;
