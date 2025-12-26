@@ -100,6 +100,7 @@ export async function registerRoutes(
     const id = parseInt(req.params.id);
     const { lat, lng, passengerCount } = api.buses.espUpdate.input.parse(req.body);
     
+    // Logic: If ESP disconnected, storage handles it via isLive checks or missing data
     await storage.updateBusEsp(id, lat, lng, passengerCount);
     res.json({ success: true });
   });

@@ -6,17 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { BUS_STATUS } from "@shared/schema";
-import { Play, Square, Users, Navigation, MapPin, Wifi, AlertTriangle } from "lucide-react";
+import { Play, Square, Users, Navigation, MapPin, Wifi, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 export default function DriverDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateBusStatus();
+  const [locationStatus, setLocationStatus] = useState<"pending" | "granted" | "denied">("pending");
   
   // Mock: Assign bus ID 1 to the driver for demo purposes
   const assignedBusId = 1;
   const { data: bus, isLoading } = useBus(assignedBusId);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        () => setLocationStatus("granted"),
+        () => setLocationStatus("denied")
+      );
+    }
+  }, []);
 
   const isRunning = bus?.status === BUS_STATUS.RUNNING;
 
@@ -24,6 +39,17 @@ export default function DriverDashboard() {
     if (!bus) return;
     const newStatus = isRunning ? BUS_STATUS.STOPPED : BUS_STATUS.RUNNING;
     updateStatus({ id: bus.id, status: newStatus });
+  };
+
+  const handlePassengerChange = async (val: number[]) => {
+    if (!bus) return;
+    const count = val[0];
+    try {
+      await apiRequest("POST", `/api/buses/${bus.id}/esp`, { passengerCount: count });
+      queryClient.invalidateQueries({ queryKey: [`/api/buses/${bus.id}`] });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   if (isLoading) return (
@@ -45,16 +71,27 @@ export default function DriverDashboard() {
             <h1 className="text-3xl font-bold font-display text-foreground">Driver Dashboard</h1>
             <p className="text-muted-foreground">Route: <span className="font-semibold text-primary">{bus.routeName}</span></p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            {bus.isLive ? <Wifi className="animate-pulse" size={18} /> : <AlertTriangle size={18} />}
-            <span className="font-bold text-sm">
-              {bus.isLive ? "ESP Connected" : "Simulation Mode"}
-            </span>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-100">
+              <CheckCircle2 size={18} />
+              <span className="font-bold text-sm">🟢 Demo GPS Active</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
+              {bus.isLive ? <Wifi className="animate-pulse" size={18} /> : <AlertTriangle size={18} />}
+              <span className="font-bold text-sm">
+                {bus.isLive ? "🔵 ESP GPS Active" : "🟡 Using Simulation"}
+              </span>
+            </div>
+            {locationStatus === "denied" && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg border border-red-100">
+                <AlertTriangle size={18} />
+                <span className="font-bold text-sm">🔴 Permission Denied</span>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Main Controls */}
           <Card className="border-t-4 border-t-primary shadow-lg">
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
@@ -108,17 +145,16 @@ export default function DriverDashboard() {
             </CardContent>
           </Card>
 
-          {/* Live Metrics */}
           <div className="space-y-6">
             <Card className="shadow-lg border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="text-primary" />
-                  Live Passenger Count
+                  Passenger Count Control
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center py-6">
+              <CardContent className="space-y-8">
+                <div className="flex items-center justify-center">
                   <div className="text-center">
                     <span className="text-6xl font-display font-bold text-foreground block">
                       {bus.passengerCount}
@@ -130,6 +166,19 @@ export default function DriverDashboard() {
                     }`}>
                       {bus.crowdLevel} Density
                     </span>
+                  </div>
+                </div>
+                <div className="px-4">
+                  <Slider
+                    defaultValue={[bus.passengerCount]}
+                    max={60}
+                    step={1}
+                    onValueChange={handlePassengerChange}
+                  />
+                  <div className="flex justify-between mt-2 text-xs text-muted-foreground font-bold">
+                    <span>0</span>
+                    <span>30</span>
+                    <span>60</span>
                   </div>
                 </div>
               </CardContent>

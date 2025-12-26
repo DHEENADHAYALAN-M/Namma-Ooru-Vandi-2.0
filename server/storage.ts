@@ -158,10 +158,17 @@ export class MemStorage implements IStorage {
 
     const [newLat, newLng] = route.path[nextIndex];
     
-    // Smooth interpolation could happen on frontend, backend just jumps for simple MVP
+    // Smooth interpolation happens on frontend, backend just jumps for simple MVP
     bus.lat = newLat;
     bus.lng = newLng;
     bus.lastUpdated = new Date().toISOString();
+
+    // Update next stop and ETA based on position
+    const stopCount = route.stops.length;
+    const pathSegmentSize = Math.floor(route.path.length / stopCount);
+    const stopIndex = Math.min(Math.floor(nextIndex / pathSegmentSize), stopCount - 1);
+    bus.nextStop = route.stops[(stopIndex + 1) % stopCount];
+    bus.eta = `${Math.max(1, 5 - (nextIndex % pathSegmentSize))} mins`;
   }
 
   private simulatePassengers(bus: Bus) {
@@ -198,6 +205,17 @@ export class MemStorage implements IStorage {
     if (!bus) throw new Error("Bus not found");
     // @ts-ignore
     bus.status = status;
+    
+    // If starting trip, reset to start of route
+    if (status === BUS_STATUS.RUNNING) {
+      const route = this.routes.find(r => r.id === bus.routeId);
+      if (route) {
+        this.busIndices.set(bus.id, 0);
+        bus.lat = route.path[0][0];
+        bus.lng = route.path[0][1];
+      }
+    }
+    
     return bus;
   }
 

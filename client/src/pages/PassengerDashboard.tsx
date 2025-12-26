@@ -3,22 +3,32 @@ import MapWrapper from "@/components/MapWrapper";
 import { BusMarker } from "@/components/BusMarker";
 import { useBuses } from "@/hooks/use-buses";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, Navigation, Users } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2, Navigation, Users, MapPin } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMap } from "react-leaflet";
+
+function MapController({ center }: { center: [number, number] | null }) {
+  const map = useMap();
+  if (center) {
+    map.flyTo(center, 15, { animate: true, duration: 1.5 });
+  }
+  return null;
+}
 
 export default function PassengerDashboard() {
   const { data: buses, isLoading } = useBuses();
   const [search, setSearch] = useState("");
   const [selectedBusId, setSelectedBusId] = useState<number | null>(null);
 
-  const filteredBuses = buses?.filter(bus => 
+  const filteredBuses = useMemo(() => buses?.filter(bus => 
     bus.busNumber.toLowerCase().includes(search.toLowerCase()) || 
     bus.routeName.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  ) || [], [buses, search]);
 
-  const selectedBus = buses?.find(b => b.id === selectedBusId);
+  const selectedBus = useMemo(() => buses?.find(b => b.id === selectedBusId), [buses, selectedBusId]);
 
   return (
     <Layout>
@@ -26,6 +36,7 @@ export default function PassengerDashboard() {
         {/* Map Layer */}
         <div className="absolute inset-0 z-0">
           <MapWrapper>
+            {selectedBus && <MapController center={[selectedBus.lat, selectedBus.lng]} />}
             {buses?.map((bus) => (
               <BusMarker 
                 key={bus.id} 
@@ -65,7 +76,10 @@ export default function PassengerDashboard() {
                     filteredBuses.map(bus => (
                       <div 
                         key={bus.id}
-                        onClick={() => setSelectedBusId(bus.id)}
+                        onClick={() => {
+                          setSelectedBusId(bus.id);
+                          setSearch("");
+                        }}
                         className={`p-3 rounded-lg cursor-pointer transition-all border ${
                           selectedBusId === bus.id 
                             ? 'bg-primary/5 border-primary/20 shadow-sm' 
@@ -133,13 +147,23 @@ export default function PassengerDashboard() {
                   </div>
                 </div>
 
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => setSelectedBusId(null)}
-                >
-                  Close
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    className="flex-1 bg-primary text-white hover:bg-primary/90 font-bold"
+                    onClick={() => {
+                      // Trip starts immediately by focusing
+                    }}
+                  >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Track Live
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setSelectedBusId(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
               </div>
             </Card>
           )}

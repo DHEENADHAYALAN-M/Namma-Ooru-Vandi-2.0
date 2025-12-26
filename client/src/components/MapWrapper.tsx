@@ -2,8 +2,8 @@ import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { ReactNode } from "react";
 
-// Chennai coordinates
-const CHENNAI_CENTER: LatLngExpression = [13.0827, 80.2707];
+// Trichy coordinates for Demo GPS Mode
+const TRICHY_CENTER: LatLngExpression = [10.8160, 78.6820];
 
 interface MapWrapperProps {
   children: ReactNode;
@@ -14,8 +14,8 @@ interface MapWrapperProps {
 
 export default function MapWrapper({ 
   children, 
-  center = CHENNAI_CENTER, 
-  zoom = 13,
+  center = TRICHY_CENTER, 
+  zoom = 14,
   className = "w-full h-full" 
 }: MapWrapperProps) {
   return (
