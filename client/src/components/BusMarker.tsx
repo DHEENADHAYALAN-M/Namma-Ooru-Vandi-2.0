@@ -3,6 +3,7 @@ import { divIcon } from "leaflet";
 import { Bus, CROWD_LEVEL, BUS_STATUS } from "@shared/schema";
 import { Bus as BusIcon, Users, Navigation, Wifi } from "lucide-react";
 import { renderToString } from "react-dom/server";
+import { useState, useEffect } from "react";
 
 interface BusMarkerProps {
   bus: Bus;
@@ -10,6 +11,54 @@ interface BusMarkerProps {
 }
 
 export function BusMarker({ bus, onClick }: BusMarkerProps) {
+  // State for smooth animation
+  const [displayPos, setDisplayPos] = useState<[number, number]>([bus.lat, bus.lng]);
+  const [prevPos, setPrevPos] = useState<[number, number]>([bus.lat, bus.lng]);
+  const [startTime, setStartTime] = useState<number>(0);
+
+  // Animate to new position when bus coordinates change
+  useEffect(() => {
+    // Only animate if position actually changed
+    if (prevPos[0] !== bus.lat || prevPos[1] !== bus.lng) {
+      setPrevPos(displayPos); // Previous position is where we currently are
+      setStartTime(Date.now());
+    }
+  }, [bus.lat, bus.lng, displayPos, prevPos]);
+
+  // Animation loop using requestAnimationFrame
+  useEffect(() => {
+    if (startTime === 0) return; // No animation in progress
+
+    const animationDuration = 1000; // Animate over 1 second
+    let animationFrameId: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / animationDuration, 1);
+
+      // Linear interpolation between previous and target position
+      const newLat = prevPos[0] + (bus.lat - prevPos[0]) * progress;
+      const newLng = prevPos[1] + (bus.lng - prevPos[1]) * progress;
+      
+      setDisplayPos([newLat, newLng]);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        // Ensure we end exactly at the target position
+        setDisplayPos([bus.lat, bus.lng]);
+        setStartTime(0); // Reset animation state
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [startTime, bus.lat, bus.lng, prevPos]);
   const isCrowded = bus.crowdLevel === CROWD_LEVEL.HIGH;
   const isMedium = bus.crowdLevel === CROWD_LEVEL.MEDIUM;
   const isRunning = bus.status === BUS_STATUS.RUNNING || bus.status.includes('Active');
@@ -47,7 +96,7 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
 
   return (
     <Marker 
-      position={[bus.lat, bus.lng]} 
+      position={displayPos} 
       icon={customIcon}
       eventHandlers={{ click: onClick }}
     >

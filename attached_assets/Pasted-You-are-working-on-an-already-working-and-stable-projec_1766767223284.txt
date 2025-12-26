@@ -1,0 +1,91 @@
+You are working on an already working and stable project
+called "Namma Ooru Vandi".
+
+IMPORTANT:
+This task must NOT change, replace, or break ANY existing logic.
+All current behavior must remain exactly the same.
+
+You are ONLY allowed to ADD a smooth animation layer
+on top of the existing live tracking logic.
+
+---------------------------------
+ABSOLUTE RULES (DO NOT VIOLATE)
+---------------------------------
+
+- Do NOT modify existing APIs, routes, or data structures.
+- Do NOT change GPS, ESP, demo mode, or location priority logic.
+- Do NOT remove or rewrite current movement code.
+- Do NOT change UI layout, buttons, or flows.
+- Do NOT refactor files or reorganize code.
+
+If something already works, leave it untouched.
+
+---------------------------------
+PROBLEM TO SOLVE (ADD-ON ONLY)
+---------------------------------
+
+Current behavior:
+- When "Track Live" is clicked, bus positions update correctly.
+- However, the marker jumps instantly between points.
+
+Required improvement:
+- Keep the SAME position updates.
+- ADD smooth, navigation-style animation between updates.
+- The bus should glide along roads instead of teleporting.
+
+---------------------------------
+HOW TO IMPLEMENT (SAFE ADDITION)
+---------------------------------
+
+1. KEEP EXISTING POSITION SOURCE
+- Continue using the current coordinates exactly as they are.
+- Do NOT change how or when new coordinates arrive.
+
+2. ADD ANIMATION LAYER
+- Introduce an intermediate “display position” for the bus marker.
+- When a new coordinate arrives:
+  - Do NOT jump the marker.
+  - Gradually animate from the old position to the new position.
+
+3. INTERPOLATION ONLY
+- Use interpolation between:
+  - previousPosition
+  - nextPosition
+- Move the marker a small step every animation frame or second.
+- Stop animation once the next position is reached.
+
+4. ROUTE & MAP SAFETY
+- Do NOT change route polylines.
+- Do NOT request new routing data.
+- Only animate the marker along the already-visible road path.
+
+---------------------------------
+MAP & UI BEHAVIOR
+---------------------------------
+
+- Map centering behavior must remain unchanged.
+- “Track Live” button behavior must remain unchanged.
+- Crowd level, ETA, and status updates must continue working.
+- Bus icon, colors, and labels must remain unchanged.
+
+---------------------------------
+TIMING
+---------------------------------
+
+- Animation must feel continuous and smooth.
+- Speed must feel like a real city bus.
+- Do NOT make the bus faster than the actual update rate.
+
+---------------------------------
+SUCCESS CRITERIA
+---------------------------------
+
+After this change:
+- Bus still receives the same coordinates as before.
+- No logic is replaced or removed.
+- Marker no longer jumps.
+- Marker moves smoothly like real navigation apps.
+- Everything else behaves IDENTICALLY.
+
+This is a visual enhancement ONLY.
+No functional changes are allowed.
