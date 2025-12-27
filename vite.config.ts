@@ -1,44 +1,51 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-export default defineConfig(() => ({
-  // ✅ CRITICAL FIX FOR VERCEL (WHITE SCREEN ISSUE)
-  base: "/",
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          // Replit-only plugins (won’t run on Vercel)
-          require("@replit/vite-plugin-cartographer").cartographer(),
-          require("@replit/vite-plugin-dev-banner").devBanner(),
-        ]
-      : []),
-  ],
+export default defineConfig(async () => {
+  const replitPlugins = [];
+  if (process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined) {
+    const { cartographer } = await import("@replit/vite-plugin-cartographer");
+    const { devBanner } = await import("@replit/vite-plugin-dev-banner");
+    replitPlugins.push(cartographer(), devBanner());
+  }
 
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"),
-      "@assets": path.resolve(__dirname, "attached_assets"),
+  return {
+    base: "/",
+
+    plugins: [
+      react(),
+      runtimeErrorOverlay(),
+      ...replitPlugins,
+    ],
+
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "client", "src"),
+        "@shared": path.resolve(__dirname, "shared"),
+        "@assets": path.resolve(__dirname, "attached_assets"),
+      },
     },
-  },
 
-  root: path.resolve(__dirname, "client"),
+    root: path.resolve(__dirname, "client"),
 
-  build: {
-    outDir: path.resolve(__dirname, "dist/public"),
-    emptyOutDir: true,
-  },
-
-  server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
+    build: {
+      outDir: path.resolve(__dirname, "dist/public"),
+      emptyOutDir: true,
     },
-  },
-}));
+
+    server: {
+      host: "0.0.0.0",
+      port: 5000,
+      allowedHosts: true as const,
+      fs: {
+        strict: true,
+        deny: ["**/.*"],
+      },
+    },
+  };
+});

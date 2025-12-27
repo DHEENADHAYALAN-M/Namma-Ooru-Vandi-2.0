@@ -87,6 +87,7 @@ const startServer = (async () => {
     httpServer.listen(
       {
         port,
+        host: "0.0.0.0",
       },
       () => {
         log(`serving on port ${port}`);

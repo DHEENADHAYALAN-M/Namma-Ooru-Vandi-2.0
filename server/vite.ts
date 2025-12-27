@@ -1,7 +1,7 @@
 import { type Express } from "express";
 import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
-import viteConfig from "../vite.config";
+import viteConfigFn from "../vite.config";
 import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
@@ -9,6 +9,8 @@ import { nanoid } from "nanoid";
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
+  const viteConfig = typeof viteConfigFn === 'function' ? await viteConfigFn({} as any) : viteConfigFn;
+  
   const serverOptions = {
     middlewareMode: true,
     hmr: { server, path: "/vite-hmr" },
@@ -22,7 +24,6 @@ export async function setupVite(server: Server, app: Express) {
       ...viteLogger,
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
       },
     },
     server: serverOptions,
