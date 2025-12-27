@@ -28,14 +28,11 @@ export async function registerRoutes(
       const { role } = api.auth.login.input.parse(req.body);
       
       // Create or get a default user for the role
-      const username = `${role}_user`;
-      let user = await storage.getUserByUsername(username);
+      let user = await storage.getUser(role === 'passenger' ? 1 : role === 'driver' ? 2 : 3);
       
       if (!user) {
-        // Fallback: If createUser doesn't exist or we can't create, use a mock
         user = {
           id: role === 'passenger' ? 1 : role === 'driver' ? 2 : 3,
-          username,
           role,
           name: `${role.charAt(0).toUpperCase() + role.slice(1)} Mode`
         };

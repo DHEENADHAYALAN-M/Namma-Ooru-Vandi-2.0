@@ -13,7 +13,7 @@ import { Polyline, CircleMarker, Popup } from "react-leaflet";
 import { api, buildUrl } from "@shared/routes";
 import { RouteWithStops } from "@shared/schema";
 
-function MapController({ center, isTracking }: { center: [number, number] | null; isTracking: boolean }) {
+function MapController({ selectedBus, isTracking }: { selectedBus: any; isTracking: boolean }) {
   const map = useMap();
   
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function PassengerDashboard() {
         {/* Map Layer */}
         <div className="absolute inset-0 z-0">
           <MapWrapper>
-            {selectedBus && <MapController center={[selectedBus.lat, selectedBus.lng]} isTracking={isTracking} />}
+            <MapController selectedBus={selectedBus} isTracking={isTracking} />
             
             {/* Route Polyline and Stops */}
             {isTracking && route && (
