@@ -2,8 +2,6 @@ import { pgTable, text, serial, integer, boolean, real, jsonb } from "drizzle-or
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// NOTE: We are NOT using a database, but we use these schemas for type sharing and validation.
-
 export const ROLE = {
   PASSENGER: 'passenger',
   DRIVER: 'driver',
@@ -13,9 +11,6 @@ export const ROLE = {
 export const BUS_STATUS = {
   RUNNING: 'Running',
   STOPPED: 'Stopped',
-  SIGNAL_LOST: 'Signal Lost',
-  DEMO_GPS: 'Demo GPS Active',
-  ESP_GPS: 'ESP GPS Active',
 } as const;
 
 export const CROWD_LEVEL = {
@@ -24,7 +19,6 @@ export const CROWD_LEVEL = {
   HIGH: 'High',
 } as const;
 
-// Define User Schema (In-memory) - Simplified for direct role selection
 export const UserSchema = z.object({
   id: z.number(),
   role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),
@@ -33,7 +27,6 @@ export const UserSchema = z.object({
 
 export type User = z.infer<typeof UserSchema>;
 
-// Define Bus Schema (In-memory)
 export const BusSchema = z.object({
   id: z.number(),
   busNumber: z.string(),
@@ -43,26 +36,15 @@ export const BusSchema = z.object({
   lng: z.number(),
   passengerCount: z.number(),
   crowdLevel: z.enum([CROWD_LEVEL.LOW, CROWD_LEVEL.MEDIUM, CROWD_LEVEL.HIGH]),
-  status: z.enum([BUS_STATUS.RUNNING, BUS_STATUS.STOPPED, BUS_STATUS.SIGNAL_LOST]),
-  isLive: z.boolean(), // True for the ESP-connected bus
+  status: z.enum([BUS_STATUS.RUNNING, BUS_STATUS.STOPPED]),
+  isLive: z.boolean(),
   nextStop: z.string(),
-  eta: z.string(), // Estimated time to next stop
-  lastUpdated: z.string(), // ISO string
+  eta: z.string(),
+  lastUpdated: z.string(),
 });
 
 export type Bus = z.infer<typeof BusSchema>;
 
-// Route Path Schema for Simulation
-export const RouteSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  path: z.array(z.tuple([z.number(), z.number()])), // Array of [lat, lng]
-  stops: z.array(z.string()),
-});
-
-export type Route = z.infer<typeof RouteSchema>;
-
-// Extended route schema with stops' positions
 export const RouteWithStopsSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -75,7 +57,12 @@ export const RouteWithStopsSchema = z.object({
 
 export type RouteWithStops = z.infer<typeof RouteWithStopsSchema>;
 
-// Input Schemas
+export const EspDataSchema = z.object({
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  passengerCount: z.number().optional(),
+});
+
 export const RoleSelectionSchema = z.object({
   role: z.enum([ROLE.PASSENGER, ROLE.DRIVER, ROLE.ADMIN]),
 });
@@ -84,10 +71,4 @@ export const LoginSchema = RoleSelectionSchema;
 
 export const UpdateBusStatusSchema = z.object({
   status: z.enum([BUS_STATUS.RUNNING, BUS_STATUS.STOPPED]),
-});
-
-export const EspDataSchema = z.object({
-  lat: z.number().optional(),
-  lng: z.number().optional(),
-  passengerCount: z.number().optional(),
 });
