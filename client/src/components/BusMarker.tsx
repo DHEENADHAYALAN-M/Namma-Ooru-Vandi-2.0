@@ -27,10 +27,13 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
       const lat2 = bus.lat;
       const lon2 = bus.lng;
       
-      const dLon = lon2 - lon1;
-      const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
-      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-                Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const lat1Rad = lat1 * Math.PI / 180;
+      const lat2Rad = lat2 * Math.PI / 180;
+
+      const y = Math.sin(dLon) * Math.cos(lat2Rad);
+      const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+                Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
       const newBearing = Math.atan2(y, x) * 180 / Math.PI;
       setBearing((newBearing + 360) % 360);
       
@@ -43,14 +46,14 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
   useEffect(() => {
     if (startTime === 0) return; // No animation in progress
 
-    const animationDuration = 1000; // Animate over 1 second
+    const animationDuration = 3000; // Animate over 3 seconds for smoother flow
     let animationFrameId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / animationDuration, 1);
 
-      // Linear interpolation between previous and target position
+      // Simple linear interpolation
       const newLat = prevPos[0] + (bus.lat - prevPos[0]) * progress;
       const newLng = prevPos[1] + (bus.lng - prevPos[1]) * progress;
       
@@ -59,9 +62,8 @@ export function BusMarker({ bus, onClick }: BusMarkerProps) {
       if (progress < 1) {
         animationFrameId = requestAnimationFrame(animate);
       } else {
-        // Ensure we end exactly at the target position
         setDisplayPos([bus.lat, bus.lng]);
-        setStartTime(0); // Reset animation state
+        setStartTime(0);
       }
     };
 

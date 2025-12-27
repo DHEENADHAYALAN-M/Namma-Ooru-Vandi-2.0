@@ -17,11 +17,14 @@ function MapController({ center, isTracking }: { center: [number, number] | null
   const map = useMap();
   
   useEffect(() => {
-    if (center && isTracking) {
-      // Zoom in and center on bus while tracking
-      map.setView(center, 16, { animate: true, duration: 0.5 });
+    if (selectedBus && isTracking) {
+      // Small delay to prevent jitter, then focus
+      const timer = setTimeout(() => {
+        map.setView([selectedBus.lat, selectedBus.lng], 16, { animate: true, duration: 1 });
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [center, isTracking, map]);
+  }, [selectedBus?.lat, selectedBus?.lng, isTracking, map]);
   
   return null;
 }

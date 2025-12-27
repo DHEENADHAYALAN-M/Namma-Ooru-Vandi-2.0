@@ -152,24 +152,26 @@ export class MemStorage implements IStorage {
 
     let currentIndex = this.busIndices.get(bus.id) || 0;
     
-    // Find closest point on path if not tracked (simple approach)
-    // Here we just advance index
+    // Smooth track movement: Backend just provides next coordinate in path
+    // The frontend BusMarker handles interpolation
     let nextIndex = (currentIndex + 1) % route.path.length;
     this.busIndices.set(bus.id, nextIndex);
 
     const [newLat, newLng] = route.path[nextIndex];
     
-    // Smooth interpolation happens on frontend, backend just jumps for simple MVP
     bus.lat = newLat;
     bus.lng = newLng;
     bus.lastUpdated = new Date().toISOString();
 
     // Update next stop and ETA based on position
     const stopCount = route.stops.length;
-    const pathSegmentSize = Math.floor(route.path.length / stopCount);
+    const pathSegmentSize = Math.max(1, Math.floor(route.path.length / stopCount));
     const stopIndex = Math.min(Math.floor(nextIndex / pathSegmentSize), stopCount - 1);
+    
+    // Logic for next stop and ETA
     bus.nextStop = route.stops[(stopIndex + 1) % stopCount];
-    bus.eta = `${Math.max(1, 5 - (nextIndex % pathSegmentSize))} mins`;
+    const stepsToNextStop = pathSegmentSize - (nextIndex % pathSegmentSize);
+    bus.eta = `${Math.max(1, stepsToNextStop)} mins`;
   }
 
   private simulatePassengers(bus: Bus) {
