@@ -48,6 +48,9 @@ export const BusSchema = z.object({
   nextStop: z.string(),
   eta: z.string(), // Estimated time to next stop
   lastUpdated: z.string(), // ISO string
+  boardedCount: z.number().optional(), // Passengers boarded at current stop
+  alightedCount: z.number().optional(), // Passengers alighted at current stop
+  atStop: z.boolean().optional(), // Currently at a stop
 });
 
 export type Bus = z.infer<typeof BusSchema>;

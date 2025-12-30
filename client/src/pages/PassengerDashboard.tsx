@@ -125,10 +125,34 @@ export default function PassengerDashboard() {
                         <div className="text-sm text-green-600 font-bold">{selectedBus.eta}</div>
                       </div>
                     </div>
+
+                    {/* Stop Status Indicator */}
+                    {selectedBus.atStop && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-semibold text-amber-800">Bus stopped at {selectedBus.nextStop}</span>
+                      </div>
+                    )}
+
+                    {/* Passenger Movement Data */}
+                    {(selectedBus.boardedCount || selectedBus.boardedCount === 0) && selectedBus.atStop && (
+                      <div className="grid grid-cols-2 gap-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                        <div>
+                          <div className="text-[9px] font-bold uppercase text-blue-600 mb-1">Passengers In</div>
+                          <div className="text-2xl font-bold text-blue-700">{selectedBus.boardedCount}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] font-bold uppercase text-red-600 mb-1">Passengers Out</div>
+                          <div className="text-2xl font-bold text-red-700">{selectedBus.alightedCount}</div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                         <div className="flex items-center gap-2 text-slate-400 mb-1"><Users size={14} /><span className="text-[10px] font-bold uppercase">Load</span></div>
                         <div className="font-bold text-slate-700">{selectedBus.crowdLevel}</div>
+                        <div className="text-xs text-slate-500 mt-1">{selectedBus.passengerCount} passengers</div>
                       </div>
                       <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                         <div className="flex items-center gap-2 text-slate-400 mb-1"><Navigation size={14} /><span className="text-[10px] font-bold uppercase">Status</span></div>

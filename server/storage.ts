@@ -16,6 +16,8 @@ export class MemStorage implements IStorage {
   private routes: Route[];
   private busIndices: Map<number, number> = new Map();
   private busInterpolation: Map<number, number> = new Map(); // Track smooth progress between waypoints (0-1)
+  private busStopPauseTimer: Map<number, number> = new Map(); // Track stop pause remaining time in ms
+  private busLastStopIndex: Map<number, number> = new Map(); // Track last stop index reached
 
   constructor() {
     this.users = new Map();
@@ -32,6 +34,8 @@ export class MemStorage implements IStorage {
   private initializeInterpolation() {
     for (let i = 1; i <= 3; i++) {
       this.busInterpolation.set(i, 0);
+      this.busStopPauseTimer.set(i, 0);
+      this.busLastStopIndex.set(i, -1);
     }
   }
 
@@ -40,32 +44,50 @@ export class MemStorage implements IStorage {
       {
         id: 1,
         name: "Route 1: Central Bus Stand → Thillai Nagar",
-        stops: ["Central Bus Stand", "Main Guard Gate", "Thillai Nagar"],
+        stops: ["Central Bus Stand", "Main Guard Gate", "Periyar Park", "Race Course", "Hospital Junction", "Thillai Nagar"],
         path: [
+          // Central Bus Stand to Main Guard Gate (4 waypoints)
           [10.8160, 78.6820], [10.8180, 78.6840], [10.8200, 78.6860], [10.8220, 78.6880],
-          [10.8240, 78.6900], [10.8260, 78.6920], [10.8280, 78.6920], [10.8300, 78.6900],
-          [10.8320, 78.6850], [10.8300, 78.6870], [10.8280, 78.6920], [10.8250, 78.6900],
-          [10.8220, 78.6880], [10.8190, 78.6850]
+          // Main Guard Gate to Periyar Park (3 waypoints)
+          [10.8240, 78.6900], [10.8250, 78.6910], [10.8260, 78.6920],
+          // Periyar Park to Race Course (3 waypoints)
+          [10.8280, 78.6920], [10.8290, 78.6915], [10.8300, 78.6900],
+          // Race Course to Hospital Junction (3 waypoints)
+          [10.8310, 78.6880], [10.8315, 78.6870], [10.8320, 78.6850],
+          // Hospital Junction to Thillai Nagar (3 waypoints)
+          [10.8310, 78.6870], [10.8300, 78.6890], [10.8290, 78.6910]
         ]
       },
       {
         id: 2,
         name: "Route 2: Central Bus Stand → Srirangam",
-        stops: ["Central Bus Stand", "Chatram", "Srirangam"],
+        stops: ["Central Bus Stand", "Market Street", "Chatram", "Temple Junction", "Riverside Road", "Srirangam"],
         path: [
-          [10.8160, 78.6820], [10.8200, 78.6850], [10.8250, 78.6900], [10.8300, 78.6950],
-          [10.8350, 78.7000], [10.8420, 78.7020], [10.8450, 78.7000], [10.8500, 78.6980],
-          [10.8580, 78.6950], [10.8620, 78.6930], [10.8650, 78.6920], [10.8620, 78.6930],
-          [10.8580, 78.6950], [10.8500, 78.6980], [10.8420, 78.7020], [10.8350, 78.7000]
+          // Central Bus Stand to Market Street (3 waypoints)
+          [10.8160, 78.6820], [10.8180, 78.6840], [10.8200, 78.6850],
+          // Market Street to Chatram (3 waypoints)
+          [10.8250, 78.6900], [10.8300, 78.6950], [10.8350, 78.7000],
+          // Chatram to Temple Junction (3 waypoints)
+          [10.8380, 78.7010], [10.8410, 78.7015], [10.8420, 78.7020],
+          // Temple Junction to Riverside Road (3 waypoints)
+          [10.8450, 78.7000], [10.8500, 78.6980], [10.8580, 78.6950],
+          // Riverside Road to Srirangam (2 waypoints)
+          [10.8620, 78.6930], [10.8650, 78.6920]
         ]
       },
       {
         id: 3,
         name: "Route 3: Chatram Bus Stand → Woraiyur",
-        stops: ["Chatram Bus Stand", "Cauvery Bridge", "Woraiyur"],
+        stops: ["Chatram Bus Stand", "Bridge Corner", "Cauvery Bridge", "Central Depot", "Woraiyur"],
         path: [
-          [10.8420, 78.7020], [10.8440, 78.7050], [10.8460, 78.7080], [10.8430, 78.7050],
-          [10.8400, 78.7000], [10.8380, 78.6850], [10.8400, 78.6900], [10.8420, 78.7020]
+          // Chatram Bus Stand to Bridge Corner (2 waypoints)
+          [10.8420, 78.7020], [10.8430, 78.7035],
+          // Bridge Corner to Cauvery Bridge (2 waypoints)
+          [10.8440, 78.7050], [10.8450, 78.7060],
+          // Cauvery Bridge to Central Depot (2 waypoints)
+          [10.8460, 78.7080], [10.8450, 78.7070],
+          // Central Depot to Woraiyur (3 waypoints)
+          [10.8430, 78.7050], [10.8410, 78.7020], [10.8420, 78.7020]
         ]
       }
     ];
@@ -91,8 +113,11 @@ export class MemStorage implements IStorage {
         status: BUS_STATUS.RUNNING,
         isLive: idx === 0,
         nextStop: route.stops[1],
-        eta: "5 mins",
-        lastUpdated: new Date().toISOString()
+        eta: "6 mins",
+        lastUpdated: new Date().toISOString(),
+        boardedCount: 0,
+        alightedCount: 0,
+        atStop: false
       });
       this.busIndices.set(idx + 1, 0);
     });
@@ -111,12 +136,24 @@ export class MemStorage implements IStorage {
     const route = this.routes.find(r => r.id === bus.routeId);
     if (!route) return;
 
+    // Check if bus is paused at a stop (2-3 seconds pause)
+    let stopPauseTime = this.busStopPauseTimer.get(bus.id) || 0;
+    if (stopPauseTime > 0) {
+      // Decrement pause timer by 500ms
+      stopPauseTime -= 500;
+      this.busStopPauseTimer.set(bus.id, Math.max(0, stopPauseTime));
+      
+      bus.atStop = stopPauseTime > 0;
+      bus.lastUpdated = new Date().toISOString();
+      return; // Don't move while paused
+    }
+
     // Get current position tracking
     let currentIndex = this.busIndices.get(bus.id) || 0;
     let interpolation = this.busInterpolation.get(bus.id) || 0;
+    let lastStopIndex = this.busLastStopIndex.get(bus.id) || -1;
 
     // Smooth movement: increment by 12% each 500ms update
-    // This gives a full waypoint transition every ~4 seconds (realistic bus speed)
     interpolation += 0.12;
 
     // When we've reached the next waypoint, advance to it
@@ -124,9 +161,28 @@ export class MemStorage implements IStorage {
       currentIndex = (currentIndex + 1) % route.path.length;
       interpolation = interpolation - 1.0; // Carry over excess to next segment
       this.busIndices.set(bus.id, currentIndex);
+
+      // Check if we've reached a stop (every waypoint is a potential stop marker)
+      const stopIndexMarkers = Math.ceil(route.path.length / (route.stops.length - 1));
+      const currentStopIndex = Math.floor(currentIndex / stopIndexMarkers);
+      if (currentStopIndex !== lastStopIndex && currentStopIndex < route.stops.length) {
+        // Pause at this stop for 2-3 seconds (2500-3500ms)
+        const pauseTime = 2500 + Math.random() * 1000;
+        this.busStopPauseTimer.set(bus.id, pauseTime);
+        bus.atStop = true;
+        this.busLastStopIndex.set(bus.id, currentStopIndex);
+
+        // Simulate passenger boarding/alighting
+        const boarded = Math.floor(Math.random() * 6) + 2; // 2-7 passengers board
+        const alighted = Math.floor(Math.random() * 5) + 1; // 1-5 passengers alight
+        bus.boardedCount = boarded;
+        bus.alightedCount = alighted;
+        bus.passengerCount = Math.max(0, Math.min(60, bus.passengerCount - alighted + boarded));
+      }
     }
 
     this.busInterpolation.set(bus.id, interpolation);
+    bus.atStop = false;
 
     // Smooth interpolation between current and next waypoint
     const nextIndex = (currentIndex + 1) % route.path.length;
@@ -146,8 +202,16 @@ export class MemStorage implements IStorage {
     const progressIndex = Math.floor((currentIndex + interpolation) / pathSegmentSize);
     const stopIndex = Math.min(progressIndex, stopCount - 1);
     bus.nextStop = route.stops[(stopIndex + 1) % stopCount];
-    const remainingStops = Math.max(1, pathSegmentSize - (currentIndex % pathSegmentSize));
-    bus.eta = `${Math.ceil(remainingStops * 0.4)} mins`; // Realistic time estimate
+    
+    // Calculate more accurate ETA
+    const nextStopWaypoints = Math.ceil((stopIndex + 1) * pathSegmentSize);
+    const remainingWaypoints = Math.max(1, nextStopWaypoints - currentIndex);
+    bus.eta = `${Math.ceil(remainingWaypoints * 0.35)} mins`;
+
+    // Update crowd level based on passenger count
+    if (bus.passengerCount < 20) bus.crowdLevel = CROWD_LEVEL.LOW;
+    else if (bus.passengerCount < 45) bus.crowdLevel = CROWD_LEVEL.MEDIUM;
+    else bus.crowdLevel = CROWD_LEVEL.HIGH;
   }
 
   private simulatePassengers(bus: Bus) {
