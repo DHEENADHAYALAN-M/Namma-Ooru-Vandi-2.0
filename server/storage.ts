@@ -15,6 +15,7 @@ export class MemStorage implements IStorage {
   private buses: Map<number, Bus>;
   private routes: Route[];
   private busIndices: Map<number, number> = new Map();
+  private busInterpolation: Map<number, number> = new Map(); // Track smooth progress between waypoints (0-1)
 
   constructor() {
     this.users = new Map();
@@ -22,9 +23,16 @@ export class MemStorage implements IStorage {
     this.routes = this.initializeRoutes();
     this.initializeUsers();
     this.initializeBuses();
+    this.initializeInterpolation();
 
-    // Faster polling for smooth movement (every 500ms)
+    // Update every 500ms for smooth frontend rendering
     setInterval(() => this.simulateMovement(), 500);
+  }
+
+  private initializeInterpolation() {
+    for (let i = 1; i <= 3; i++) {
+      this.busInterpolation.set(i, 0);
+    }
   }
 
   private initializeRoutes(): Route[] {
@@ -103,27 +111,43 @@ export class MemStorage implements IStorage {
     const route = this.routes.find(r => r.id === bus.routeId);
     if (!route) return;
 
+    // Get current position tracking
     let currentIndex = this.busIndices.get(bus.id) || 0;
-    let nextIndex = (currentIndex + 1) % route.path.length;
-    this.busIndices.set(bus.id, nextIndex);
+    let interpolation = this.busInterpolation.get(bus.id) || 0;
 
-    // Smooth interpolation between coordinates
+    // Smooth movement: increment by 12% each 500ms update
+    // This gives a full waypoint transition every ~4 seconds (realistic bus speed)
+    interpolation += 0.12;
+
+    // When we've reached the next waypoint, advance to it
+    if (interpolation >= 1.0) {
+      currentIndex = (currentIndex + 1) % route.path.length;
+      interpolation = interpolation - 1.0; // Carry over excess to next segment
+      this.busIndices.set(bus.id, currentIndex);
+    }
+
+    this.busInterpolation.set(bus.id, interpolation);
+
+    // Smooth interpolation between current and next waypoint
+    const nextIndex = (currentIndex + 1) % route.path.length;
     const currentPos = route.path[currentIndex];
     const nextPos = route.path[nextIndex];
     const [currLat, currLng] = currentPos;
     const [nextLat, nextLng] = nextPos;
 
-    // Interpolate 60% of the way to the next point for smooth movement
-    const interpolationFactor = 0.6;
-    bus.lat = currLat + (nextLat - currLat) * interpolationFactor;
-    bus.lng = currLng + (nextLng - currLng) * interpolationFactor;
+    // Linear interpolation for smooth movement
+    bus.lat = currLat + (nextLat - currLat) * interpolation;
+    bus.lng = currLng + (nextLng - currLng) * interpolation;
     bus.lastUpdated = new Date().toISOString();
 
+    // Update stop information based on progress through route
     const stopCount = route.stops.length;
     const pathSegmentSize = Math.max(1, Math.floor(route.path.length / stopCount));
-    const stopIndex = Math.min(Math.floor(nextIndex / pathSegmentSize), stopCount - 1);
+    const progressIndex = Math.floor((currentIndex + interpolation) / pathSegmentSize);
+    const stopIndex = Math.min(progressIndex, stopCount - 1);
     bus.nextStop = route.stops[(stopIndex + 1) % stopCount];
-    bus.eta = `${Math.max(1, pathSegmentSize - (nextIndex % pathSegmentSize))} mins`;
+    const remainingStops = Math.max(1, pathSegmentSize - (currentIndex % pathSegmentSize));
+    bus.eta = `${Math.ceil(remainingStops * 0.4)} mins`; // Realistic time estimate
   }
 
   private simulatePassengers(bus: Bus) {
