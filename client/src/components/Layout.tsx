@@ -1,12 +1,15 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-demo-auth";
 import { Button } from "@/components/ui/button";
 import { LogOut, MapPin, User as UserIcon } from "lucide-react";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
+
+  // Simple null check for user availability
+  if (user === undefined) return null;
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

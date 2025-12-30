@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-demo-auth";
 import { useUpdateBusStatus, useBus } from "@/hooks/use-buses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ export default function DriverDashboard() {
   const { toast } = useToast();
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateBusStatus();
   const [locationStatus, setLocationStatus] = useState<"pending" | "granted" | "denied">("pending");
+  const [autoStarted, setAutoStarted] = useState(false);
   
   // Mock: Assign bus ID 1 to the driver for demo purposes
   const assignedBusId = 1;
@@ -32,6 +33,14 @@ export default function DriverDashboard() {
       );
     }
   }, []);
+
+  // Auto-play: Start trip automatically when bus data loads
+  useEffect(() => {
+    if (bus && !autoStarted && bus.status !== BUS_STATUS.RUNNING) {
+      setAutoStarted(true);
+      updateStatus({ id: bus.id, status: BUS_STATUS.RUNNING });
+    }
+  }, [bus, autoStarted, updateStatus]);
 
   const isRunning = bus?.status === BUS_STATUS.RUNNING;
 

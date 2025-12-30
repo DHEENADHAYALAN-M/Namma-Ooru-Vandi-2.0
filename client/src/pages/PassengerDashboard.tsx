@@ -29,6 +29,14 @@ export default function PassengerDashboard() {
   const [isTracking, setIsTracking] = useState(false);
   const [route, setRoute] = useState<RouteWithStops | null>(null);
 
+  // Auto-play: Select first bus and start tracking on mount
+  useEffect(() => {
+    if (buses && buses.length > 0 && !selectedId) {
+      setSelectedId(buses[0].id);
+      setIsTracking(true);
+    }
+  }, [buses, selectedId]);
+
   const filteredBuses = useMemo(() => buses?.filter(bus => 
     bus.busNumber.toLowerCase().includes(search.toLowerCase()) || 
     bus.routeName.toLowerCase().includes(search.toLowerCase())

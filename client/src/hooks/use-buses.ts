@@ -12,7 +12,7 @@ export function useBuses() {
       if (!res.ok) throw new Error("Failed to fetch buses");
       return api.buses.list.responses[200].parse(await res.json());
     },
-    refetchInterval: 1000, // Poll every second for live movement
+    refetchInterval: 500, // Poll every 500ms for smooth movement
   });
 }
 
@@ -26,7 +26,7 @@ export function useBus(id: number) {
       if (!res.ok) throw new Error("Failed to fetch bus details");
       return api.buses.get.responses[200].parse(await res.json());
     },
-    refetchInterval: 1000,
+    refetchInterval: 500,
     enabled: !!id,
   });
 }

@@ -2,7 +2,7 @@ import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-demo-auth";
 import { SplashScreen } from "@/components/SplashScreen";
 import Login from "@/pages/Login";
 import PassengerDashboard from "@/pages/PassengerDashboard";
@@ -28,7 +28,7 @@ function ProtectedRoute({ component: Component, allowedRoles }: { component: any
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Redirect to="/dashboard" />; // Default to passenger dashboard if unauthorized
+    return <Redirect to="/dashboard" />;
   }
 
   return <Component />;
@@ -39,10 +39,8 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public Route - Login */}
       <Route path="/">
         {user ? (
-           // Redirect logged-in users to their respective dashboards
            user.role === 'driver' ? <Redirect to="/driver" /> :
            user.role === 'admin' ? <Redirect to="/admin" /> :
            <Redirect to="/dashboard" />
@@ -51,7 +49,6 @@ function Router() {
         )}
       </Route>
 
-      {/* Role-based Routes */}
       <Route path="/dashboard">
         <ProtectedRoute component={PassengerDashboard} allowedRoles={['passenger', 'admin']} />
       </Route>
@@ -73,7 +70,6 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Hide splash screen after 1.5 seconds
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 1500);

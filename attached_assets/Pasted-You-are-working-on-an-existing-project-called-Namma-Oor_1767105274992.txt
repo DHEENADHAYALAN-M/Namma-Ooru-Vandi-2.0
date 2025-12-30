@@ -1,0 +1,101 @@
+You are working on an existing project called "Namma Ooru Vandi".
+This project already has UI, routing, map view, and partial demo logic implemented.
+
+GOAL:
+Make the project a FLAWLESS DEMO (competition-ready) without changing the UI design or core concept.
+
+STRICT RULES:
+- Do NOT redesign UI
+- Do NOT add authentication, database, or backend complexity
+- Do NOT change page layouts, colors, icons, or branding
+- Keep everything lightweight and demo-focused
+- Prefer frontend-only logic wherever possible
+- No breaking changes
+
+---------------------------------
+TASK 1: SIMPLIFY LOGIN (VERY IMPORTANT)
+---------------------------------
+- Remove complex authentication logic (sessions, API auth, user fetching)
+- Replace login with a SIMPLE DEMO MODE SELECTOR
+- Passenger / Driver / Admin buttons should:
+  - Directly route to their pages
+  - Store selected role in local state or localStorage
+- No API calls during login
+- No JSON parsing from server
+- Zero backend dependency for login
+
+Result:
+- Clicking a role immediately opens the dashboard
+- No login errors
+- No server calls
+
+---------------------------------
+TASK 2: FLAWLESS BUS MOVEMENT (GOOGLE MAPS–LIKE)
+---------------------------------
+- Improve existing bus movement logic (DO NOT rewrite map UI)
+- Use smooth interpolation between coordinates
+- Animate movement using requestAnimationFrame or timed intervals
+- Ensure:
+  - No sudden jumps
+  - Constant speed
+  - Natural turns along the route
+
+- Predefine a demo route (array of lat/lng points)
+- Loop the route infinitely for demo purposes
+
+---------------------------------
+TASK 3: AUTO-PLAY DEMO MODE
+---------------------------------
+- Demo must start automatically when page loads
+- No button click required
+- If role = Passenger:
+  - Map opens
+  - Bus starts moving automatically
+- If role = Driver:
+  - Mock trip starts automatically
+- If role = Admin:
+  - Live stats auto-update
+
+---------------------------------
+TASK 4: MOCK ESP STREAMING (FRONTEND ONLY)
+---------------------------------
+- Create a mock ESP stream:
+  - Emits GPS coordinates
+  - Emits speed
+  - Emits passenger count
+- Data updates every 1–2 seconds
+- All data must stay in-memory (no backend, no sockets)
+
+---------------------------------
+TASK 5: LIVE CHARTS SYNC
+---------------------------------
+- Sync charts with mock ESP data
+- Charts must:
+  - Update smoothly
+  - Never freeze
+  - Never reset unless page reloads
+- Use lightweight chart updates (no heavy re-renders)
+
+---------------------------------
+TASK 6: CLEAN & LIGHTWEIGHT
+---------------------------------
+- Remove unused hooks, unused files, dead code
+- Remove unused API calls
+- Remove unused backend routes (if not required for demo)
+- Keep build fast and error-free
+- No console errors or warnings
+
+---------------------------------
+FINAL RESULT EXPECTATION
+---------------------------------
+When a judge opens the app:
+- Page loads instantly
+- Demo auto-starts
+- Bus moves smoothly on map
+- Charts update live
+- App feels like a real production system
+- Zero errors
+- Zero confusion
+
+This is a DEMO-FIRST, JUDGE-READY build.
+Focus on stability, smoothness, and realism.

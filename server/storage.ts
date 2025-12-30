@@ -23,7 +23,8 @@ export class MemStorage implements IStorage {
     this.initializeUsers();
     this.initializeBuses();
 
-    setInterval(() => this.simulateMovement(), 2000);
+    // Faster polling for smooth movement (every 500ms)
+    setInterval(() => this.simulateMovement(), 500);
   }
 
   private initializeRoutes(): Route[] {
@@ -106,9 +107,16 @@ export class MemStorage implements IStorage {
     let nextIndex = (currentIndex + 1) % route.path.length;
     this.busIndices.set(bus.id, nextIndex);
 
-    const [newLat, newLng] = route.path[nextIndex];
-    bus.lat = newLat;
-    bus.lng = newLng;
+    // Smooth interpolation between coordinates
+    const currentPos = route.path[currentIndex];
+    const nextPos = route.path[nextIndex];
+    const [currLat, currLng] = currentPos;
+    const [nextLat, nextLng] = nextPos;
+
+    // Interpolate 60% of the way to the next point for smooth movement
+    const interpolationFactor = 0.6;
+    bus.lat = currLat + (nextLat - currLat) * interpolationFactor;
+    bus.lng = currLng + (nextLng - currLng) * interpolationFactor;
     bus.lastUpdated = new Date().toISOString();
 
     const stopCount = route.stops.length;

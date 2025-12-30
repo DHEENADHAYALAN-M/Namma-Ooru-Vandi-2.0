@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-demo-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Bus, Shield, User } from "lucide-react";
@@ -6,10 +6,10 @@ import Layout from "@/components/Layout";
 import { ROLE } from "@shared/schema";
 
 export default function Login() {
-  const { login, isLoading } = useAuth();
+  const { setRole } = useAuth();
   
   const handleRoleSelection = (role: typeof ROLE[keyof typeof ROLE]) => {
-    login({ role });
+    setRole(role as 'passenger' | 'driver' | 'admin');
   };
 
   return (
@@ -40,7 +40,7 @@ export default function Login() {
                 <CardDescription>Track live buses and plan your journey</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <Button variant="outline" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors" disabled={isLoading} data-testid="button-passenger-mode">
+                <Button variant="outline" className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors" data-testid="button-passenger-mode">
                   Explore Map
                 </Button>
               </CardContent>
@@ -59,7 +59,7 @@ export default function Login() {
                 <CardDescription>Update trip status and passenger count</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <Button variant="outline" className="w-full mt-4 group-hover:bg-orange-600 group-hover:text-white transition-colors" disabled={isLoading} data-testid="button-driver-mode">
+                <Button variant="outline" className="w-full mt-4 group-hover:bg-orange-600 group-hover:text-white transition-colors" data-testid="button-driver-mode">
                   Access Console
                 </Button>
               </CardContent>
@@ -78,7 +78,7 @@ export default function Login() {
                 <CardDescription>Manage fleet and monitor operations</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <Button variant="outline" className="w-full mt-4 group-hover:bg-red-600 group-hover:text-white transition-colors" disabled={isLoading} data-testid="button-admin-mode">
+                <Button variant="outline" className="w-full mt-4 group-hover:bg-red-600 group-hover:text-white transition-colors" data-testid="button-admin-mode">
                   System Overview
                 </Button>
               </CardContent>
